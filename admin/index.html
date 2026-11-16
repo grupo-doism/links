@@ -32,7 +32,9 @@
     .prof-item{display:flex;align-items:center;gap:8px;padding:8px 12px;margin:2px 8px;border-radius:8px;cursor:pointer;transition:background .12s;font-size:.86rem}
     .prof-item:hover{background:var(--surface2)} .prof-item.active{background:rgba(41,171,226,.12);color:var(--accent)}
     .prof-item .dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0}
-    .prof-item.active .dot{background:var(--accent)}
+    .prof-item.active .dot{background:var(--accent)} .prof-item>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .copy-url-btn{opacity:0;width:22px;height:22px;border-radius:5px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:opacity .12s,color .12s;flex-shrink:0;padding:0;line-height:1}
+    .prof-item:hover .copy-url-btn,.prof-item.active .copy-url-btn{opacity:1} .copy-url-btn:hover{color:var(--accent)}
     .sb-new{display:flex;align-items:center;gap:8px;padding:8px 12px;margin:8px;border-radius:8px;cursor:pointer;font-size:.86rem;color:var(--accent);border:1px solid rgba(41,171,226,.25);background:rgba(41,171,226,.06);transition:background .12s}
     .sb-new:hover{background:rgba(41,171,226,.12)}
     .sb-foot{margin-top:auto;padding:12px;border-top:1px solid var(--border)}
@@ -62,14 +64,16 @@
     .upload-lbl:hover{border-color:var(--accent);color:var(--accent)}
 
     /* ── Links editor ── */
-    .links-list{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
-    .link-item{display:grid;grid-template-columns:42px 1fr 1fr 36px 36px;gap:8px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 11px}
-    .link-ic{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:17px}
+    .links-list{display:flex;flex-direction:column;gap:9px;margin-bottom:10px}
+    .link-item{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 12px}
+    .link-item-head{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+    .link-item-body{padding-left:43px;display:flex;flex-direction:column;gap:7px}
+    .link-item-meta{display:flex;gap:6px;align-items:center}
+    .link-acts{display:flex;gap:4px;margin-left:auto;flex-shrink:0}
+    .link-ic{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
     .ico-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:color .12s,border-color .12s;flex-shrink:0}
     .ico-btn:hover{color:var(--fg);border-color:rgba(255,255,255,.18)} .ico-btn:disabled{opacity:.3;cursor:default}
     .ico-btn.del:hover{color:var(--danger);border-color:var(--danger)}
-    .link-cols{display:flex;flex-direction:column;gap:4px}
-    .link-meta{display:flex;gap:6px;align-items:center}
 
     /* ── Socials ── */
     .soc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -102,7 +106,7 @@
     /* ── Banner ── */
     .banner{background:rgba(41,171,226,.08);border:1px solid rgba(41,171,226,.2);border-radius:9px;padding:11px 14px;font-size:.82rem;color:var(--accent);margin-bottom:20px}
 
-    @media(max-width:640px){.sidebar{display:none} .main{padding:16px} .frow,.frow.three{grid-template-columns:1fr} .link-item{grid-template-columns:36px 1fr}}
+    @media(max-width:640px){.sidebar{display:none} .main{padding:16px} .frow,.frow.three{grid-template-columns:1fr} .link-item-body{padding-left:0}}
   </style>
 </head>
 <body>
@@ -273,6 +277,7 @@ function renderSidebar() {
   document.getElementById('prof-list').innerHTML = profiles.map(p => `
     <div class="prof-item ${activeProfile?.name===p.name?'active':''}" onclick="openProfile('${p.name}')">
       <div class="dot"></div><span>${p.label}</span>
+      <button class="copy-url-btn" onclick="event.stopPropagation();copyUrl('${p.url}')" title="Copiar link">⎘</button>
     </div>`).join('');
 }
 
@@ -440,23 +445,23 @@ function renderLinks() {
   if (!editLinks.length) { c.innerHTML = '<p style="color:var(--muted);font-size:.8rem;margin-bottom:10px">Nenhum link ainda.</p>'; return; }
   c.innerHTML = `<div class="links-list">${editLinks.map((l,i)=>`
     <div class="link-item" data-idx="${i}">
-      <div class="link-ic" style="background:${l.color}1a;color:${l.color}">${l.icon}</div>
-      <div class="link-cols">
-        <input type="text" data-f="label" value="${esc(l.label)}" placeholder="Nome do botão"/>
-        <input type="url" data-f="url" value="${esc(l.url)}" placeholder="https://"/>
-      </div>
-      <div class="link-cols">
-        <div class="link-meta">
-          <input type="text" data-f="icon" value="${esc(l.icon)}" placeholder="💬" style="width:46px;text-align:center" oninput="syncLink(${i},this);renderLinks()"/>
-          <input type="color" data-f="color" value="${l.color}" style="width:38px;height:32px;padding:2px" oninput="syncLink(${i},this);renderLinks()"/>
+      <div class="link-item-head">
+        <div class="link-ic" style="background:${l.color}1a;color:${l.color}">${l.icon}</div>
+        <input type="text" data-f="label" value="${esc(l.label)}" placeholder="Nome do botão" style="flex:1"/>
+        <div class="link-acts">
+          <button class="ico-btn" onclick="moveLink(${i},-1)" ${i===0?'disabled':''} title="Subir">↑</button>
+          <button class="ico-btn" onclick="moveLink(${i},1)" ${i===editLinks.length-1?'disabled':''} title="Descer">↓</button>
+          <button class="ico-btn del" onclick="removeLink(${i})" title="Remover">🗑</button>
         </div>
-        <input type="text" data-f="id" value="${esc(l.id)}" placeholder="id-unico" style="font-size:.7rem;opacity:.55"/>
       </div>
-      <div style="display:flex;flex-direction:column;gap:4px">
-        <button class="ico-btn" onclick="moveLink(${i},-1)" ${i===0?'disabled':''}>↑</button>
-        <button class="ico-btn" onclick="moveLink(${i},1)" ${i===editLinks.length-1?'disabled':''}>↓</button>
+      <div class="link-item-body">
+        <input type="url" data-f="url" value="${esc(l.url)}" placeholder="https://"/>
+        <div class="link-item-meta">
+          <input type="text" data-f="icon" value="${esc(l.icon)}" placeholder="💬" style="width:50px;text-align:center" oninput="syncLink(${i},this);renderLinks()"/>
+          <input type="color" data-f="color" value="${l.color}" style="width:40px;height:32px;padding:2px" oninput="syncLink(${i},this);renderLinks()"/>
+          <input type="text" data-f="id" value="${esc(l.id)}" placeholder="id-unico" style="flex:1;font-size:.72rem;opacity:.6"/>
+        </div>
       </div>
-      <button class="ico-btn del" onclick="removeLink(${i})">🗑</button>
     </div>`).join('')}
   </div>`;
 }
@@ -489,19 +494,21 @@ async function uploadImg(input, fieldId, prevId) {
   } catch(e) { toast('Erro: '+e.message,'error'); }
 }
 function doUpload(file, path) {
+  if (file.size > 900000) return Promise.reject(new Error('Imagem muito grande (máx 900 KB). Comprima antes de enviar.'));
   return new Promise((res,rej)=>{
     const r = new FileReader();
     r.onload = async e => {
       try {
         const b64 = e.target.result.split(',')[1];
+        if (!b64) throw new Error('Falha ao ler o arquivo');
         const resp = await fetch(`${API}/contents/${path}`, { method:'PUT', headers: hdrs(),
           body: JSON.stringify({ message:`Upload ${path}`, content: b64 }) });
-        const d = await resp.json();
-        if (!resp.ok) throw new Error(d.message);
+        const d = await resp.json().catch(()=>({}));
+        if (!resp.ok) throw new Error(d.message || `HTTP ${resp.status} — verifique permissão do token`);
         res(`${SITE}/${path}`);
       } catch(err) { rej(err); }
     };
-    r.onerror = rej; r.readAsDataURL(file);
+    r.onerror = () => rej(new Error('Falha ao ler o arquivo')); r.readAsDataURL(file);
   });
 }
 function setImgPrev(id, url) {
@@ -677,6 +684,10 @@ function genHTML(cfg, isRoot) {
 // ═══════════════════════════════════════
 // UTILS
 // ═══════════════════════════════════════
+async function copyUrl(url) {
+  try { await navigator.clipboard.writeText(url); toast('Link copiado!','success'); }
+  catch { prompt('Copie o link:',url); }
+}
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 let _tt;
 function toast(msg, type='') {
